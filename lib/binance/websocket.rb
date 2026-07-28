@@ -8,7 +8,6 @@ module Binance
       super wss_uri, nil, ping: 180
 
       @request_id_inc = 0
-      @user_stream_handlers = {}
 
       on :open do |event|
         on_open&.call(event)
@@ -55,9 +54,14 @@ module Binance
       subscribe(symbols_fmt.map { |s| "#{s.downcase}@kline_#{interval}" })
     end
 
-    def user_data_stream!(listen_key, &on_receive)
-      @user_stream_handlers[listen_key] = on_receive
-      subscribe([listen_key])
+    # Spot listenKey streams were removed by Binance on 2026-02-20.
+    # Use Binance::WebSocketApi#user_data_stream! instead.
+    def user_data_stream!(*)
+      raise Error.new(
+        "Spot listenKey user data streams are no longer available. " \
+        "Use Binance::WebSocketApi#user_data_stream! " \
+        "(userDataStream.subscribe.signature on the WebSocket API)."
+      )
     end
 
     # stream name: <symbol>@trade
@@ -189,11 +193,6 @@ module Binance
           @candlesticks_handler&.call(json[:stream], json[:data])
         when :depthUpdate
           @book_depth_handler&.call(json[:stream], json[:data])
-        when :outboundAccountPosition
-        when :balanceUpdate
-        when :executionReport # order update
-          listen_key = json[:stream]
-          @user_stream_handlers[listen_key]&.call(listen_key, json[:data])
         when :trade
           @trades_handler&.call(json[:stream], json[:data])
         end

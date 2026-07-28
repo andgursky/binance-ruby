@@ -86,30 +86,9 @@ RSpec.describe Binance::WebSocket do
   end
 
   describe '#user_data_stream!' do
-    let(:stream_name) { 'somerandom' }
+    subject { websocket.user_data_stream!('somerandom') }
 
-    context 'error' do
-      let(:json_string) { '{ "error": {"code": 0, "msg": "Unknown property","id": 123} }' }
-
-      subject { websocket.user_data_stream!(stream_name) }
-
-      it { is_expected_block.to raise_error Binance::WebSocket::Error }
-    end
-
-    context 'executionReport' do
-      let(:json_string) do
-        {
-          stream: stream_name,
-          data: JSON.parse(File.read('spec/fixtures/executionReport.json'), symbolize_names: true)
-        }.to_json
-      end
-
-      it 'calls on_receive' do
-        inc = 0
-        websocket.user_data_stream!(stream_name) { inc = 1 }
-        expect(inc).to eq 1
-      end
-    end
+    it { is_expected_block.to raise_error(Binance::WebSocket::Error, /WebSocketApi#user_data_stream!/) }
   end
 
   describe '#partial_book_depth!' do

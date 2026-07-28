@@ -117,14 +117,15 @@ EM.run do
 end
 ```
 
-**User Data:**
+**User Data (Spot WebSocket API):**
+
+Spot listenKey REST endpoints (`POST/PUT/DELETE /api/v3/userDataStream`) were removed by Binance on 2026-02-20. Subscribe via the WebSocket API instead:
 
 ```ruby
 EM.run do
-  websocket = Binance::WebSocket.new
+  websocket = Binance::WebSocketApi.new
 
-  listen_key = Binance::Api::UserDataStream.start!
-  websocket.user_data_stream!(listen_key) do |listen_key, data|
+  websocket.user_data_stream! do |subscription_id, data|
     case data[:e].to_sym
     when :outboundAccountPosition
     when :balanceUpdate
@@ -158,11 +159,10 @@ You can find more info on all `kline_candlestick` attributes & available interva
 - [`deposit_history`](https://binance-docs.github.io/apidocs/spot/en/#fiat-deposit-history-user_data): Get fiat deposit history.
 - [`withdraw_history`](https://binance-docs.github.io/apidocs/spot/en/#fiat-withdraw-history-user_data): Get fiat withdrawal history.
 
-### Binance::Api::DataStream class methods
+### Binance::Api::UserDataStream class methods
 
-- [`start!`](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#start-user-data-stream-user_stream): Start a new user data stream.
-- [`keepalive!`](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#keepalive-user-data-stream-user_stream): Keepalive a user data stream.
-- [`stop!`](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#close-user-data-stream-user_stream): Close out a user data stream.
+Spot listenKey methods (`start!`, `keepalive!`, `stop!`) were removed by Binance and now raise. Use `Binance::WebSocketApi#user_data_stream!` for Spot user data.
+
 - [`margin_start!`](https://binance-docs.github.io/apidocs/spot/en/#start-user-data-stream-user_stream): Start a new margin user data stream.
 - [`margin_keepalive!`](https://binance-docs.github.io/apidocs/spot/en/#keepalive-user-data-stream-user_stream): Keepalive a margin user data stream.
 
@@ -182,9 +182,13 @@ You can find more info on all `kline_candlestick` attributes & available interva
 
 - [`candlesticks!`](https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#klinecandlestick-streams): Kline/candlestick bars for a symbol.
 - [`trades!`](https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#trade-streams): The Trade Streams push raw trade information.
-- [`user_data_stream!`](https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md#web-socket-payloads): Account updates, balances changes, and order updates.
 - [`partial_book_depth!`](https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams): Top levels bids and asks, pushed every second.
 - [`book_depth!`](https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams): Order book price and quantity depth updates used to locally manage an order book.
+
+### Binance::WebSocketApi instance methods
+
+- [`user_data_stream!`](https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests): Account updates, balance changes, and order updates via `userDataStream.subscribe.signature`.
+- `user_data_unsubscribe!`: Stop a User Data Stream subscription.
 
 See the [rubydoc](http://www.rubydoc.info/gems/binance-ruby/0.1.2/Binance) for information about parameters for each method listed above.
 

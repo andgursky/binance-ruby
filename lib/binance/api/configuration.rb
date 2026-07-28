@@ -30,6 +30,14 @@ module Binance
           OpenSSL::HMAC.hexdigest(digest, api_secret_key || secret_key, payload)
         end
 
+        # WebSocket API SIGNED params: sort keys alphabetically, then HMAC-SHA256.
+        # See https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/request-security
+        def signed_ws_api_params(params:, api_secret_key: nil)
+          unsigned = params.reject { |key, _| key.to_s == "signature" }
+          payload = unsigned.sort_by { |key, _| key.to_s }.map { |key, value| "#{key}=#{value}" }.join("&")
+          unsigned.merge(signature: signed_request_signature(payload: payload, api_secret_key: api_secret_key))
+        end
+
         def timestamp
           Time.now.utc.strftime("%s%3N")
         end
